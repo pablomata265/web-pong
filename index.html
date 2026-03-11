@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        canvas {
+            background: #000;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="pong" width="800" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('pong');
+        const context = canvas.getContext('2d');
+
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            size: 10,
+            speed: 5,
+            velocityX: 5,
+            velocityY: 5,
+        };
+        const user = {
+            x: 0,
+            y: canvas.height / 2 - 50,
+            width: 10,
+            height: 100,
+            score: 0,
+        };
+        const computer = {
+            x: canvas.width - 10,
+            y: canvas.height / 2 - 50,
+            width: 10,
+            height: 100,
+            score: 0,
+        };
+
+        function drawRect(x, y, w, h, color) {
+            context.fillStyle = color;
+            context.fillRect(x, y, w, h);
+        }
+
+        function drawBall(x, y, size, color) {
+            context.fillStyle = color;
+            context.beginPath();
+            context.arc(x, y, size, 0, Math.PI * 2, false);
+            context.closePath();
+            context.fill();
+        }
+
+        function draw() {
+            drawRect(0, 0, canvas.width, canvas.height, '#000');
+            drawRect(user.x, user.y, user.width, user.height, '#fff');
+            drawRect(computer.x, computer.y, computer.width, computer.height, '#fff');
+            drawBall(ball.x, ball.y, ball.size, '#fff');
+        }
+
+        function update() {
+            ball.x += ball.velocityX;
+            ball.y += ball.velocityY;
+
+            if (ball.y + ball.size > canvas.height || ball.y - ball.size < 0) {
+                ball.velocityY = -ball.velocityY;
+            }
+
+            let player = (ball.x < canvas.width / 2) ? user : computer;
+            if (collision(ball, player)) {
+                ball.velocityX = -ball.velocityX;
+            }
+
+            if (ball.x - ball.size < 0) {
+                computer.score++;
+                resetBall();
+            } else if (ball.x + ball.size > canvas.width) {
+                user.score++;
+                resetBall();
+            }
+        }
+
+        function collision(ball, player) {
+            player.top = player.y;
+            player.bottom = player.y + player.height;
+            player.left = player.x;
+            player.right = player.x + player.width;
+
+            ball.top = ball.y - ball.size;
+            ball.bottom = ball.y + ball.size;
+            ball.left = ball.x - ball.size;
+            ball.right = ball.x + ball.size;
+
+            return player.left < ball.right && player.top < ball.bottom && player.right > ball.left && player.bottom > ball.top;
+        }
+
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            ball.velocityX = -ball.velocityX;
+        }
+
+        function game() {
+            draw();
+            update();
+        }
+
+        document.addEventListener('mousemove', (event) => {
+            let rect = canvas.getBoundingClientRect();
+            user.y = event.clientY - rect.top - user.height / 2;
+        });
+
+        setInterval(game, 1000 / 60);
+    </script>
+</body>
+</html>
